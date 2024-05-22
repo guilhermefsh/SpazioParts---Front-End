@@ -100,6 +100,25 @@ padding:1.75rem;
 text-decoration:none;
 cursor:pointer;
 `
+export const CallToActionFrete = styled.a`
+background:#414141;
+width:100%;
+display: flex;
+align-items: center;
+justify-content: center;
+gap: 0.5rem;
+margin-top: 1.5rem; 
+margin-bottom: 1.5rem;
+height: 2.75rem;
+font-size: 1.25rem;
+border-radius: 0.375rem;
+font-weight: 500;
+color:white;
+padding:1.75rem;
+text-decoration:none;
+cursor:pointer;
+`
+
 export const SliderImg = styled.img`
 width:100%;
 height:24rem;

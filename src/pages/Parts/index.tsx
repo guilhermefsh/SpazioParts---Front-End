@@ -1,12 +1,30 @@
 import { useEffect, useState, } from "react"
 import { Swiper, SwiperSlide } from "swiper/react"
-import { FaWhatsapp } from "react-icons/fa"
+import { FaTruck, FaWhatsapp } from "react-icons/fa"
 import Mplogo from '../../assets/Mercadopagoicon.png'
 import { useNavigate, useParams } from "react-router-dom"
 import { ContainerAlign } from "../../components/Align"
 import { getDoc, doc } from "firebase/firestore"
 import { db } from "../../services/firebaseConnection"
-import { Attributes, CallToAction, CallToActionMP, DescriptionParts, IconMP, InfoCont, InfoParts, ModelParts, NameParts, PartsDetail, PriceParts, SliderImg, TitleDescription, TitleParts, Titles, YearParts } from "./styles"
+import {
+    Attributes,
+    CallToAction,
+    CallToActionMP,
+    DescriptionParts,
+    IconMP,
+    InfoCont,
+    InfoParts,
+    ModelParts,
+    NameParts,
+    PartsDetail,
+    PriceParts,
+    SliderImg,
+    TitleDescription,
+    TitleParts,
+    Titles,
+    YearParts,
+    CallToActionFrete
+} from "./styles"
 
 interface PartsProps {
     id: string;
@@ -18,6 +36,7 @@ interface PartsProps {
     images: PartsImageProps[];
     whatsapp: string;
     mercadoPago: string;
+    frete: string;
     owner: string;
     description: string;
 }
@@ -55,6 +74,7 @@ export const PartsDetails = () => {
                         whatsapp: snapshot.data()?.whatsapp,
                         owner: snapshot.data()?.owner,
                         mercadoPago: snapshot.data()?.mercadoPago,
+                        frete: snapshot.data()?.frete,
                         description: snapshot.data()?.description
                     })
                 })
@@ -129,6 +149,11 @@ export const PartsDetails = () => {
                             Compre direto no mercado pago!
                             <IconMP src={Mplogo} alt="icone MP" />
                         </CallToActionMP>
+                        <CallToActionFrete
+                            href={parts.frete} target="_blank">
+                            Click aqui e cote seu frete!
+                            <FaTruck size={32} />
+                        </CallToActionFrete>
                     </InfoParts>
                 </InfoCont>
             )}

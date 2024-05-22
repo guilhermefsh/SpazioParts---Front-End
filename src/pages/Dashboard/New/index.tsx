@@ -1,4 +1,4 @@
-import { ChangeEvent, useContext, useState } from 'react'
+import { ChangeEvent, useContext, useEffect, useState } from 'react'
 import { FiTrash, FiUpload } from 'react-icons/fi'
 import { ContainerAlign } from '../../../components/Align'
 import { PanelHeader } from '../../../components/PanelHeader'
@@ -11,8 +11,9 @@ import { AuthContext } from '../../../contexts/AuthContext'
 import { v4 as uuidV4 } from 'uuid'
 import { storage, db } from '../../../services/firebaseConnection'
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage'
-import { addDoc, collection } from 'firebase/firestore'
+import { addDoc, collection, doc, getDoc, updateDoc } from 'firebase/firestore'
 import toast from 'react-hot-toast'
+import { useParams } from 'react-router-dom'
 
 const schema = z.object({
     name: z.string().nonempty("O campo nome é obrigatório"),
@@ -23,6 +24,7 @@ const schema = z.object({
         message: "Numero de telefone inválido"
     }),
     mercadoPago: z.string(),
+    frete: z.string(),
     description: z.string().nonempty("A descrição é obrigatória")
 })
 
@@ -38,10 +40,47 @@ interface ImagemItemProps {
 export const New = () => {
     const [partsImage, setPartsImage] = useState<ImagemItemProps[]>([])
     const { user } = useContext(AuthContext);
-    const { register, handleSubmit, formState: { errors }, reset } = useForm<FormData>({
+    const { id } = useParams<{ id: string }>();
+    const { register, handleSubmit, formState: { errors }, reset, setValue } = useForm<FormData>({
         resolver: zodResolver(schema),
         mode: "onChange"
     })
+
+    useEffect(() => {
+        async function loadProduct() {
+            if (id) {
+                try {
+                    const docRef = doc(db, "parts", id);
+                    const docSnap = await getDoc(docRef);
+                    if (docSnap.exists()) {
+                        const data = docSnap.data();
+                        setValue("name", data.name);
+                        setValue("model", data.model);
+                        setValue("year", data.year);
+                        setValue("price", data.price);
+                        setValue("whatsapp", data.whatsapp);
+                        setValue("mercadoPago", data.mercadoPago);
+                        setValue("frete", data.frete);
+                        setValue("description", data.description);
+
+                        const formattedImages = data.images.map((image: any) => ({
+                            uid: image.uid,
+                            name: image.name,
+                            previewUrl: image.url,
+                            url: image.url
+                        }));
+
+                        setPartsImage(formattedImages);
+                    } else {
+                        console.log("No such document!");
+                    }
+                } catch (error) {
+                    console.error("Error fetching document: ", error);
+                }
+            }
+        }
+        loadProduct();
+    }, [id, setValue]);
 
     async function handleFile(e: ChangeEvent<HTMLInputElement>) {
         if (e.target.files && e.target.files[0]) {
@@ -50,7 +89,7 @@ export const New = () => {
             if (image.type === 'image/jpeg' || image.type === 'image/png') {
                 await handleUpload(image)
             } else {
-                alert("envie uma imagem PNG ou JPG")
+                alert("Envie uma imagem PNG ou JPG")
             }
         }
     }
@@ -86,11 +125,11 @@ export const New = () => {
             await deleteObject(imageRef)
             setPartsImage(partsImage.filter((parts) => parts.url !== item.url))
         } catch (err) {
-            alert("erro ao deletar");
+            alert("Erro ao deletar");
         }
     }
 
-    function onSubmit(data: FormData) {
+    async function onSubmit(data: FormData) {
         if (partsImage.length === 0) {
             alert("Envie alguma imagem das peças")
             return;
@@ -104,7 +143,7 @@ export const New = () => {
             }
         })
 
-        addDoc(collection(db, "parts"), {
+        const newPartData = {
             name: data.name.toUpperCase(),
             model: data.model,
             year: data.year,
@@ -116,17 +155,33 @@ export const New = () => {
             uid: user?.uid,
             images: partsListImages,
             mercadoPago: data.mercadoPago,
-        })
-            .then(() => {
-                reset();
-                setPartsImage([]);
-                toast.success("Peça cadastrada com sucesso");
-            })
-            .catch((error) => {
-                console.log(error)
-                toast.error("Erro ao cadastrar no banco de dados")
-            })
+            frete: data.frete,
+        }
+
+        if (id) {
+            const docRef = doc(db, "parts", id);
+            updateDoc(docRef, newPartData)
+                .then(() => {
+                    toast.success("Peça atualizada com sucesso");
+                })
+                .catch((error) => {
+                    console.log(error)
+                    toast.error("Erro ao atualizar no banco de dados")
+                })
+        } else {
+            addDoc(collection(db, "parts"), newPartData)
+                .then(() => {
+                    reset();
+                    setPartsImage([]);
+                    toast.success("Peça cadastrada com sucesso");
+                })
+                .catch((error) => {
+                    console.log(error)
+                    toast.error("Erro ao cadastrar no banco de dados")
+                })
+        }
     }
+
     return (
         <ContainerAlign>
             <PanelHeader />
@@ -215,6 +270,16 @@ export const New = () => {
                         />
                     </FormItens>
                     <FormItens>
+                        <TitleInput>Frete:</TitleInput>
+                        <InputForm
+                            type='text'
+                            register={register}
+                            name='frete'
+                            error={errors.frete?.message}
+                            placeholder='cole o link do frete'
+                        />
+                    </FormItens>
+                    <FormItens>
                         <TitleInput>Descrição:</TitleInput>
                         <DescriptionArea
                             {...register("description")}
@@ -225,7 +290,7 @@ export const New = () => {
                         {errors.description && <p style={{ color: "red" }}>{errors.description.message}</p>}
                     </FormItens>
                     <ButtonRegister type='submit'>
-                        Cadastrar
+                        {id ? "Atualizar" : "Cadastrar"}
                     </ButtonRegister>
                 </FormInfo>
             </FormCont>

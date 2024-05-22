@@ -76,3 +76,15 @@ margin-left:14rem;
 margin-top:6rem;
 cursor: pointer;
 `
+export const EditProduct = styled.button`
+position:absolute;
+background:black;
+border-color:red;
+width:3.5rem;
+height:3.5rem;
+border-radius: 50%;
+box-shadow: 2px 8px 8px rgba(0,0,0,0.1);
+margin-left:10rem;
+margin-top:6rem;
+cursor: pointer;
+`

@@ -48,6 +48,7 @@ border-radius:0.5rem;
 max-height:18rem;
 transition: all 0.5s ease;
 cursor: pointer;
+object-fit:cover;
 &:hover{
     transform:scale(1.05);
 }

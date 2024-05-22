@@ -14,10 +14,14 @@ import {
     PriceProduct,
     ProductImg,
     RemoveImgBtn,
-    SectionProduct
+    SectionProduct,
+    EditProduct
 } from './styles'
 import { AuthContext } from '../../contexts/AuthContext'
 import toast from 'react-hot-toast'
+import { FaPencil } from 'react-icons/fa6'
+import { useParams } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 
 interface PartsProps {
     id: string;
@@ -38,8 +42,9 @@ interface PartsImageProps {
 export const Dashboard = () => {
     const [parts, setParts] = useState<PartsProps[]>([])
     const { user } = useContext(AuthContext)
+    const { id } = useParams<{ id: string }>();
     useEffect(() => {
-        function loadParts() {
+        async function loadParts() {
             if (!user?.uid) {
                 return;
             }
@@ -66,7 +71,7 @@ export const Dashboard = () => {
                 })
         }
         loadParts();
-    }, [user])
+    }, [user, id])
 
     async function handleDeleteCar(part: PartsProps) {
         const itemParts = part;
@@ -85,6 +90,8 @@ export const Dashboard = () => {
             }
         })
     }
+
+
     return (
         <ContainerAlign>
             <PanelHeader />
@@ -94,6 +101,9 @@ export const Dashboard = () => {
                         <RemoveImgBtn onClick={() => handleDeleteCar(part)}>
                             <FiTrash size={30} color='red' />
                         </RemoveImgBtn>
+                        <EditProduct>
+                            <Link to={`new/${part.id}`}><FaPencil size={30} color='red' /></Link>
+                        </EditProduct>
                         <ProductImg src={part.images[0].url} alt="carro" />
                         <NameProduct>{part.name}</NameProduct>
                         <DetailsProduct>
