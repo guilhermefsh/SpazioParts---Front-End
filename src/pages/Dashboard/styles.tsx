@@ -25,6 +25,7 @@ export const ProductImg = styled.img`
 width:100%;
 border-radius:0.5rem;
 max-height:18rem;
+object-fit: cover;
 `
 export const NameProduct = styled.p`
 font-weight:bold;
